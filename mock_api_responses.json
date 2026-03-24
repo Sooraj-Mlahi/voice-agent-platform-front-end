@@ -1,0 +1,230 @@
+{
+  "_readme": {
+    "purpose": "Mock API responses for offline testing of CallLogs and AgentConfig pages.",
+    "latency_formula": "estimatedLatencyMs = Math.round((duration_seconds * 1000) / firstAgentWordCount)",
+    "latency_tiers": {
+      "fast": "< 500ms — green pill",
+      "normal": "500–1200ms — amber pill",
+      "slow": "> 1200ms — red pill",
+      "null": "no transcript or wordCount=0 — grey dash"
+    },
+    "how_to_use": "See TESTING_CHECKLIST.md Section 5 for MSW setup instructions."
+  },
+
+  "customers": [
+    {
+      "id": "cust-mock-001",
+      "name": "Acme Corp",
+      "billing_email": "billing@acme.com",
+      "phone_number": "+15551234001",
+      "plan": "pro",
+      "status": "active",
+      "retell_agent_id": "agent_mock_abc123",
+      "agent_config": {
+        "system_prompt": "You are a helpful customer service assistant for Acme Corp. Answer questions about billing, shipping, and returns politely and concisely.",
+        "voice_id": "11labs-Adrian",
+        "llm_model": "openai/gpt-4o-mini",
+        "language": "en-US",
+        "prosody_style": "warm-conversational",
+        "silence_timeout_seconds": 10,
+        "max_silence_prompts": 2,
+        "recording_enabled": true
+      }
+    },
+    {
+      "id": "cust-mock-002",
+      "name": "Bright Solutions",
+      "billing_email": "ops@brightsolutions.io",
+      "phone_number": "+15551234002",
+      "plan": "starter",
+      "status": "active",
+      "retell_agent_id": "agent_mock_def456",
+      "agent_config": {
+        "system_prompt": "You are a professional scheduling assistant for Bright Solutions. Help callers book, reschedule, or cancel appointments.",
+        "voice_id": "11labs-Rachel",
+        "llm_model": "openai/gpt-4o",
+        "language": "en-US",
+        "prosody_style": "formal",
+        "silence_timeout_seconds": 15,
+        "max_silence_prompts": 1,
+        "recording_enabled": true
+      }
+    }
+  ],
+
+  "calls": [
+    {
+      "_comment": "LATENCY: FAST — duration=20s, firstAgentWordCount=67, ms=Math.round(20000/67)=299ms → GREEN pill",
+      "id": "mock-call-fast-001",
+      "customer_id": "cust-mock-001",
+      "retell_call_id": "retell_fast_aabbcc",
+      "caller_number": "+15559876001",
+      "duration_seconds": 20,
+      "outcome": "completed",
+      "started_at": "2026-03-25T09:14:32.000Z",
+      "transcript": [
+        {
+          "role": "agent",
+          "content": "Hello welcome to Acme Corp customer support I am your AI assistant and I am here to help you today whether you have questions about your account billing shipping or anything else I am fully equipped to assist you quickly and efficiently our goal is to resolve your issue on this very call so please go ahead and let me know what I can do for you"
+        },
+        {
+          "role": "user",
+          "content": "Hi I just needed to check my account balance real quick."
+        },
+        {
+          "role": "agent",
+          "content": "Of course! I can see your current balance is zero and your next payment of forty-nine dollars is due on April first. Is there anything else I can help you with today?"
+        },
+        {
+          "role": "user",
+          "content": "No that's all, thanks!"
+        },
+        {
+          "role": "agent",
+          "content": "You're very welcome! Have a wonderful day. Goodbye!"
+        }
+      ]
+    },
+
+    {
+      "_comment": "LATENCY: NORMAL — duration=90s, firstAgentWordCount=90, ms=Math.round(90000/90)=1000ms → AMBER pill",
+      "id": "mock-call-normal-002",
+      "customer_id": "cust-mock-001",
+      "retell_call_id": "retell_normal_ddeeff",
+      "caller_number": "+15559876002",
+      "duration_seconds": 90,
+      "outcome": "transferred",
+      "started_at": "2026-03-25T11:03:17.000Z",
+      "transcript": [
+        {
+          "role": "agent",
+          "content": "Hello thank you for calling Bright Solutions customer support my name is Alex and I am your AI assistant for today I am here to help you with billing technical support account management or any other general inquiries you may have our team is dedicated to resolving your issues efficiently and on this very call so please go ahead and tell me what is bringing you in today and I will do my very best to assist you with a quick and thorough resolution to whatever the matter might be"
+        },
+        {
+          "role": "user",
+          "content": "Hi there, I've been having an issue with my invoice for the past three months — the amount charged doesn't match what I was quoted."
+        },
+        {
+          "role": "agent",
+          "content": "I'm sorry to hear that, that sounds really frustrating. Let me look into your billing history right now. I can see three invoices from January, February, and March. I can see there's a discrepancy. I'm going to transfer you to our billing specialist who can issue the correction immediately."
+        },
+        {
+          "role": "user",
+          "content": "Thank you, I appreciate that."
+        },
+        {
+          "role": "agent",
+          "content": "Of course! Please hold for just a moment while I connect you. Thank you for your patience."
+        }
+      ]
+    },
+
+    {
+      "_comment": "LATENCY: SLOW — duration=200s, firstAgentWordCount=24, ms=Math.round(200000/24)=8333ms → RED pill. Also tests silence hang-up edge case: short first agent turn + long silence.",
+      "id": "mock-call-slow-003",
+      "customer_id": "cust-mock-002",
+      "retell_call_id": "retell_slow_gghhii",
+      "caller_number": "+15559876003",
+      "duration_seconds": 200,
+      "outcome": "completed",
+      "started_at": "2026-03-24T16:45:00.000Z",
+      "_silence_hangup_note": "This call lasted 200s but ended with hang-up phrases. Future backend should emit outcome: 'silence_hangup'. See TODO in CallLogs.tsx.",
+      "transcript": [
+        {
+          "role": "agent",
+          "content": "Good afternoon thank you for reaching out to customer support I am here to assist you today please go ahead and describe your issue"
+        },
+        {
+          "role": "user",
+          "content": "Yeah... uh... I'm not sure where to start. It's kind of a complicated situation."
+        },
+        {
+          "role": "agent",
+          "content": "No problem at all, take your time. I'm here to listen."
+        },
+        {
+          "role": "user",
+          "content": "..."
+        },
+        {
+          "role": "agent",
+          "content": "Are you still there?"
+        },
+        {
+          "role": "user",
+          "content": "..."
+        },
+        {
+          "role": "agent",
+          "content": "Just checking in — are you still on the line?"
+        },
+        {
+          "role": "agent",
+          "content": "It seems like we may have lost you. Have a great day! Goodbye."
+        }
+      ]
+    },
+
+    {
+      "_comment": "LATENCY: NULL (grey dash) — no transcript, outcome: no_answer. Tests null transcript path and no_answer badge.",
+      "id": "mock-call-noans-004",
+      "customer_id": "cust-mock-002",
+      "retell_call_id": "retell_noans_jjkkll",
+      "caller_number": null,
+      "duration_seconds": 8,
+      "outcome": "no_answer",
+      "started_at": "2026-03-24T08:22:01.000Z",
+      "transcript": null
+    },
+
+    {
+      "_comment": "LATENCY: NULL (grey dash) — legacy plain-string transcript, outcome: voicemail. Tests the <pre> fallback render path.",
+      "id": "mock-call-voicemail-005",
+      "customer_id": "cust-mock-001",
+      "retell_call_id": "retell_voicemail_mmnnoo",
+      "caller_number": "+15559876005",
+      "duration_seconds": 35,
+      "outcome": "voicemail",
+      "started_at": "2026-03-23T14:11:55.000Z",
+      "transcript": "AGENT: Hello, you've reached customer support. We're unable to take your call right now.\nAGENT: Please leave your name, number, and a brief message and we'll get back to you within one business day.\nUSER: [voicemail left]\nAGENT: Thank you for your message. Goodbye."
+    },
+
+    {
+      "_comment": "LATENCY: NULL (grey dash) — empty array transcript, outcome: dropped. Tests empty bubble area render.",
+      "id": "mock-call-dropped-006",
+      "customer_id": "cust-mock-001",
+      "retell_call_id": "retell_dropped_ppqqrr",
+      "caller_number": "+15559876006",
+      "duration_seconds": 3,
+      "outcome": "dropped",
+      "started_at": "2026-03-23T10:05:44.000Z",
+      "transcript": []
+    },
+
+    {
+      "_comment": "OUTCOME: unknown string — tests grey 'Unknown' badge fallback for unrecognised outcome values.",
+      "id": "mock-call-unknown-007",
+      "customer_id": "cust-mock-002",
+      "retell_call_id": "retell_unknown_ssttuuu",
+      "caller_number": "+15559876007",
+      "duration_seconds": 15,
+      "outcome": "silence_hangup",
+      "_silence_hangup_note": "This outcome value is not yet handled — should render grey 'Unknown' badge until the TODO in CallLogs.tsx is resolved.",
+      "started_at": "2026-03-22T19:30:00.000Z",
+      "transcript": [
+        {
+          "role": "agent",
+          "content": "Hello thank you for calling how can I help you today"
+        },
+        {
+          "role": "agent",
+          "content": "Are you still there?"
+        },
+        {
+          "role": "agent",
+          "content": "Have a great day! Goodbye."
+        }
+      ]
+    }
+  ]
+}
