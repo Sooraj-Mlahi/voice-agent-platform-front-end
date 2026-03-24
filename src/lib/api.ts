@@ -1,27 +1,22 @@
 import axios from 'axios';
 import { supabase } from '@/lib/supabase';
 
-// Production FastAPI base URL from Railway
-const API_BASE_URL = 'https://voice-agent-platform-production-86a4.up.railway.app/api';
-
-export const api = axios.create({
-  baseURL: API_BASE_URL,
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL + '/api',
 });
 
-// Interceptor to inject the Supabase JWT token into every request
+// Attach the Supabase JWT to every request automatically
 api.interceptors.request.use(
   async (config) => {
-    // Get the current active session from Supabase
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    // If a session and token exist, append it to the Auth header
-    if (session?.access_token) {
-      config.headers.Authorization = `Bearer ${session.access_token}`;
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
+export { api };
+export default api;
