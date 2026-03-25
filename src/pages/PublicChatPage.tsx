@@ -60,7 +60,7 @@ export function PublicChatPage() {
   }
 
   function toggleMute() {
-    client.mute(!isMuted)
+    client.mute()
     setIsMuted((m) => !m)
   }
 

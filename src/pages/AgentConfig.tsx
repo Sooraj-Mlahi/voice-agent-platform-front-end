@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef, KeyboardEvent } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import type { KeyboardEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
