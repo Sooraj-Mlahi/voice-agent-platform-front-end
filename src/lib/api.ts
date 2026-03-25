@@ -1,22 +1,47 @@
-import axios from 'axios';
-import { supabase } from '@/lib/supabase';
+import axios from 'axios'
+import { supabase } from '@/lib/supabase'
+import type { Customer, CallLog, WebCallToken, PublicAgentInfo, CreateCustomerPayload, UpdateConfigPayload } from '@/types/api'
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL + '/api',
-});
+const BASE = import.meta.env.VITE_API_BASE_URL as string // e.g. https://...railway.app
 
-// Attach the Supabase JWT to every request automatically
+// ─── Authenticated Axios instance ──────────────────────────────────────────────
+export const api = axios.create({
+  baseURL: BASE,
+  headers: { 'Content-Type': 'application/json' },
+})
+
 api.interceptors.request.use(
   async (config) => {
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+    if (token) config.headers.Authorization = `Bearer ${token}`
+    return config
   },
   (error) => Promise.reject(error)
-);
+)
 
-export { api };
-export default api;
+// ─── Typed service functions (all auth-required) ──────────────────────────────
+
+export const customerService = {
+  list: ()                                        => api.get<Customer[]>('/api/customers'),
+  create: (body: CreateCustomerPayload)           => api.post<Customer>('/api/customers', body),
+  updateConfig: (id: string, body: UpdateConfigPayload) =>
+    api.put(`/api/customers/${id}/config`, body),
+  startWebCall: (id: string)                      => api.post<WebCallToken>(`/api/customers/${id}/web-call`),
+}
+
+export const callService = {
+  list: () => api.get<CallLog[]>('/api/calls'),
+}
+
+// ─── Public service (no JWT required, plain axios) ───────────────────────────
+
+const publicApi = axios.create({
+  baseURL: BASE,
+  headers: { 'Content-Type': 'application/json' },
+})
+
+export const publicAgentService = {
+  getInfo:  (customerId: string) => publicApi.get<PublicAgentInfo>(`/public/agent/${customerId}`),
+  getToken: (customerId: string) => publicApi.post<WebCallToken>(`/public/agent/${customerId}/token`),
+}

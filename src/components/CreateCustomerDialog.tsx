@@ -29,7 +29,7 @@ export function CreateCustomerDialog() {
 
   const mutation = useMutation({
     mutationFn: async (newCustomer: typeof formData) => {
-      const response = await api.post('/customers', {
+      const response = await api.post('/api/customers', {
         ...newCustomer,
         status: 'active',
         retell_agent_id: null,

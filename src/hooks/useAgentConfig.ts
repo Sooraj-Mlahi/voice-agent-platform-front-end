@@ -9,10 +9,11 @@ export const agentConfigSchema = z.object({
   voice_id: z.string().min(1, 'Please select a voice'),
   llm_model: z.string().min(1, 'Please select a model'),
   language: z.string().min(1, 'Please select a language'),
-  prosody_style: z.string().min(1, 'Please select a prosody style'),
+  prosody_style: z.enum(['warm-conversational', 'formal', 'empathetic', 'sales-energetic']),
   silence_timeout_seconds: z.number().int().min(5).max(60),
   max_silence_prompts: z.union([z.literal(1), z.literal(2)]),
   recording_enabled: z.boolean(),
+  custom_vocabulary: z.array(z.string()),
 })
 
 export type AgentConfigFormValues = z.infer<typeof agentConfigSchema>
@@ -20,12 +21,13 @@ export type AgentConfigFormValues = z.infer<typeof agentConfigSchema>
 export const defaultAgentConfig: AgentConfigFormValues = {
   system_prompt: '',
   voice_id: '11labs-Adrian',
-  llm_model: 'openai/gpt-4o-mini',
+  llm_model: 'gpt-4o-mini',          // Retell-native ID
   language: 'en-US',
   prosody_style: 'warm-conversational',
   silence_timeout_seconds: 10,
   max_silence_prompts: 2,
-  recording_enabled: true,
+  recording_enabled: false,
+  custom_vocabulary: [],
 }
 
 // ─── Customer type ─────────────────────────────────────────────────────────────
@@ -49,7 +51,7 @@ export function useAgentConfig(customerId: string | undefined) {
   const { data: customers, isLoading } = useQuery<Customer[]>({
     queryKey: ['customers'],
     queryFn: async () => {
-      const response = await api.get('/customers')
+      const response = await api.get('/api/customers')
       return response.data
     },
     staleTime: 30_000,
@@ -64,7 +66,7 @@ export function useAgentConfig(customerId: string | undefined) {
 
   const mutation = useMutation({
     mutationFn: async (values: AgentConfigFormValues) => {
-      const response = await api.put(`/customers/${customerId}/config`, {
+      const response = await api.put(`/api/customers/${customerId}/config`, {
         agent_config: values,
       })
       return response.data

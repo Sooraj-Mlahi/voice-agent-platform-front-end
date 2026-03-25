@@ -28,7 +28,7 @@ export function CustomersList() {
   const { data: customers, isLoading } = useQuery<Customer[]>({
     queryKey: ['customers'],
     queryFn: async () => {
-      const response = await api.get('/customers')
+      const response = await api.get('/api/customers')
       return response.data
     }
   })
