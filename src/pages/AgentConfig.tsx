@@ -4,9 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { ArrowLeft, Save, Loader2, Phone, PhoneOff, Info, X } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, Phone, PhoneOff, Info, X, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { RetellWebClient } from 'retell-client-js-sdk'
-import { api } from '@/lib/api'
+import { api, promptService } from '@/lib/api'
 import {
   useAgentConfig,
   agentConfigSchema,
@@ -148,6 +148,151 @@ function VocabularyInput({
   )
 }
 
+// ─── Agent type options ────────────────────────────────────────────────────────
+const AGENT_TYPES = [
+  { value: 'real_estate',        label: 'Real Estate Agent' },
+  { value: 'customer_support',   label: 'Customer Support' },
+  { value: 'medical_receptionist', label: 'Medical Receptionist' },
+  { value: 'dental_practice',    label: 'Dental Practice' },
+  { value: 'restaurant_booking', label: 'Restaurant & Table Booking' },
+  { value: 'legal_intake',       label: 'Legal Intake' },
+  { value: 'insurance_agent',    label: 'Insurance Agent' },
+  { value: 'financial_services', label: 'Financial Services' },
+  { value: 'fitness_wellness',   label: 'Fitness & Wellness' },
+  { value: 'general_assistant',  label: 'General Business Assistant' },
+]
+
+// ─── Prompt Generator Panel ───────────────────────────────────────────────────
+function PromptGenerator({ onGenerated }: { onGenerated: (prompt: string) => void }) {
+  const [open, setOpen]               = useState(false)
+  const [agentType, setAgentType]     = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [extraDetails, setExtraDetails] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [didGenerate, setDidGenerate]   = useState(false)
+
+  async function handleGenerate() {
+    if (!agentType || !companyName.trim()) return
+    setIsGenerating(true)
+    setDidGenerate(false)
+    try {
+      const { data } = await promptService.generate({
+        agent_type: agentType,
+        company_name: companyName.trim(),
+        extra_details: extraDetails.trim(),
+      })
+      onGenerated(data.system_prompt)
+      setDidGenerate(true)
+      setTimeout(() => setOpen(false), 1200)
+    } catch {
+      toast.error('Prompt generation failed. Please try again.')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Toggle button — lives next to the System Prompt label */}
+      <button
+        type="button"
+        onClick={() => { setOpen((o) => !o); setDidGenerate(false) }}
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
+      >
+        <Sparkles className="w-3.5 h-3.5" />
+        Auto-generate
+        {open
+          ? <ChevronUp className="w-3 h-3 opacity-60" />
+          : <ChevronDown className="w-3 h-3 opacity-60" />}
+      </button>
+
+      {/* Inline panel */}
+      {open && (
+        <div className="rounded-xl border border-indigo-500/20 bg-indigo-950/30 p-4 space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-indigo-300 uppercase tracking-widest flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> AI Prompt Generator
+            </p>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-slate-500 hover:text-slate-300"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Agent type */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-slate-400 font-medium">Agent Type</label>
+              <Select value={agentType} onValueChange={setAgentType}>
+                <SelectTrigger className="bg-slate-950 border-slate-700 h-9 text-sm">
+                  <SelectValue placeholder="Select type…" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                  {AGENT_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Company name */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-slate-400 font-medium">Company Name</label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g. Apex Dental"
+                className="w-full h-9 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-slate-200 placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* Extra details */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-slate-400 font-medium">
+              Extra details <span className="text-slate-600">(optional)</span>
+            </label>
+            <textarea
+              value={extraDetails}
+              onChange={(e) => setExtraDetails(e.target.value)}
+              placeholder="e.g. We specialise in emergency appointments. No walk-ins. Accept Delta Dental insurance."
+              rows={2}
+              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+            />
+            <p className="text-[11px] text-slate-600">
+              More context → better prompt. Mention specialities, policies, tone preferences.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              onClick={handleGenerate}
+              disabled={!agentType || !companyName.trim() || isGenerating}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm h-9"
+            >
+              {isGenerating
+                ? <><Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />Generating…</>
+                : <><Sparkles className="w-3.5 h-3.5 mr-2" />Generate Prompt</>}
+            </Button>
+
+            {didGenerate && (
+              <span className="text-xs text-emerald-400 flex items-center gap-1 animate-in fade-in duration-300">
+                ✓ Inserted above — review and edit before saving
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Component ────────────────────────────────────────────────────────────
 export function AgentConfig() {
   const { id } = useParams<{ id: string }>()
@@ -159,7 +304,7 @@ export function AgentConfig() {
   const { customer, config, isLoading, updateConfigAsync, isPending } = useAgentConfig(id)
 
   const {
-    register, handleSubmit, control, watch, reset,
+    register, handleSubmit, control, watch, reset, setValue,
     formState: { errors },
   } = useForm<AgentConfigFormValues>({
     resolver: zodResolver(agentConfigSchema),
@@ -264,7 +409,10 @@ export function AgentConfig() {
           {/* ── Section A: Agent Identity ── */}
           <Section label="A — Agent Identity">
             <div className="space-y-2">
-              <Label htmlFor="system_prompt" className="text-slate-300">System Prompt</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="system_prompt" className="text-slate-300">System Prompt</Label>
+                <PromptGenerator onGenerated={(prompt) => setValue('system_prompt', prompt, { shouldValidate: true })} />
+              </div>
               <Textarea
                 id="system_prompt"
                 placeholder="You are a helpful customer service assistant answering phone calls…"

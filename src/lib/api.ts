@@ -34,6 +34,11 @@ export const callService = {
   list: () => api.get<CallLog[]>('/api/calls'),
 }
 
+export const promptService = {
+  generate: (body: { agent_type: string; company_name: string; extra_details?: string }) =>
+    api.post<{ system_prompt: string }>('/api/generate-prompt', body),
+}
+
 // ─── Public service (no JWT required, plain axios) ───────────────────────────
 
 const publicApi = axios.create({
