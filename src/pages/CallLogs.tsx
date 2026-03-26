@@ -218,7 +218,8 @@ export function CallLogs() {
                 <TableHead className="text-slate-400 font-semibold">Caller</TableHead>
                 <TableHead className="text-slate-400 font-semibold">Duration</TableHead>
                 <TableHead className="text-slate-400 font-semibold">Outcome</TableHead>
-                <TableHead className="text-slate-400 font-semibold">
+                {/* Latency column hidden — data still fetched, re-enable when ready */}
+                <TableHead className="hidden text-slate-400 font-semibold">
                   <Tooltip>
                     <TooltipTrigger className="cursor-default">Latency p50</TooltipTrigger>
                     <TooltipContent className="bg-slate-800 border-slate-700 text-slate-200 text-xs">
@@ -267,7 +268,8 @@ export function CallLogs() {
                         </Badge>
                       </TableCell>
 
-                      <TableCell>
+                      {/* Latency cell hidden — re-enable with header when ready */}
+                      <TableCell className="hidden">
                         <LatencyPill ms={call.latency_p50_ms} />
                       </TableCell>
 

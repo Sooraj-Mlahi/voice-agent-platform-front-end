@@ -20,7 +20,7 @@ export function Layout() {
           <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-md shadow-indigo-500/20">
              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
           </div>
-          <span className="font-bold text-lg tracking-tight">Voice Agent</span>
+          <span className="font-bold text-lg tracking-tight">Techvera Vera</span>
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-2">

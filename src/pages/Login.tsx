@@ -24,7 +24,7 @@ export function Login() {
           <div className="h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-indigo-500/20">
              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Voice Agent Platform</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Techvera Vera Voice Agent</h1>
           <p className="text-slate-400 mt-2">Admin Dashboard for Resellers</p>
         </div>
 
